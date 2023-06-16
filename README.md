@@ -1,21 +1,22 @@
 ---
 page_type: sample
 languages:
-- azdeveloper
-- nodejs
-- bicep
-- typescript
-- html
+  - azdeveloper
+  - nodejs
+  - bicep
+  - typescript
+  - html
 products:
-- azure
-- azure-cosmos-db
-- azure-app-service
-- azure-monitor
-- azure-pipelines
+  - azure
+  - azure-cosmos-db
+  - azure-app-service
+  - azure-monitor
+  - azure-pipelines
 urlFragment: todo-nodejs-mongo
 name: React Web App with Node.js API and MongoDB on Azure
 description: A complete ToDo app on Azure App Service with Node.js API and Azure Cosmos API for MongoDB for storage. Uses Azure Developer CLI (azd) to build, deploy, and monitor
 ---
+
 <!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
 
 # React Web App with Node.js API and MongoDB on Azure
@@ -39,20 +40,78 @@ The following prerequisites are required to use this application. Please ensure 
 - [Node.js with npm (16.13.1+)](https://nodejs.org/) - for API backend and Web frontend
 
 ### Quickstart
-To learn how to get started with any template, follow the steps in [this quickstart](https://learn.microsoft.com/azure/developer/azure-developer-cli/get-started?tabs=localinstall&pivots=programming-language-nodejs) with this template(`Azure-Samples/todo-nodejs-mongo`).
 
-This quickstart will show you how to authenticate on Azure, initialize using a template, provision infrastructure and deploy code on Azure via the following commands:
+_Create a new repository using this template and clone it locally if you haven't already._
 
-```bash
-# Log in to azd. Only required once per-install.
-azd auth login
+#### 1. Create a Service Principal (or use an existing one)
 
-# First-time project setup. Initialize a project in the current directory, using this template. 
-azd init --template Azure-Samples/todo-csharp-cosmos-sql
+_You'll have to [install the Azure CLI][install-az] if you haven't already_
 
-# Provision and deploy to Azure
-azd up
+```sh
+az ad sp create-for-rbac -n MyUniqueName
 ```
+
+output:
+
+```json
+{
+  "appId": "<GUID>",
+  "displayName": "MyUniqueName",
+  "password": "<STRING>",
+  "tenant": "<GUID>"
+}
+```
+
+#### 2. Create a new GitHub repository [secret][github-repo-secret] and [variables][github-repo-variable]
+
+##### Secrets
+
+- `AZURE_CLIENT_SECRET` _(password)_
+
+##### Variables
+
+- `AZURE_CLIENT_ID` _(appId)_
+- `AZURE_TENANT_ID` _(tenant)_
+
+#### 3. Create a GitHub PAT token
+
+Create a new PAT token with permissions to read the content of your new repo. You'll need this token in the next step.
+
+#### 4. Deploy a DevCenter and Project
+
+// TODO...
+
+Navigate to the `ade/Deploy` folder in your repo, fill in the parameters.json file and deploy...
+
+> _**Important:** The GUID passed in for the `ciPrincipalId` parameters is the principal's Id **NOT** its AppId from the output above. To get the principal's ID, run:_ `az ad sp show --id appId -o tsv --query id`
+
+```sh
+# navigate to the deploy folder
+cd path/to/repo/ade/deploy
+
+# create a new resource group
+az group create -l eastus -n MY-RESOURCE-GROUP
+
+# deploy a the dev center and project resources
+az deployment group create -g MY-RESOURCE-GROUP -f main.bicep -p @parameters.json
+```
+
+#### 5. Update the values in the `ade.yml` file located in the root of your repo
+
+```yaml
+catalog: Catalog
+definition: Todo
+tenant: YOUR-TENANT-ID
+subscription: YOUR-DEV-CENTER-SUBSCRIPTION-ID
+devcenter: YOUR-DEV-CENTER-NAME
+project: YOUR-PROJECT-NAME
+```
+
+Replace the values for `tenant`, `subscription`, `devcenter`, and `project`
+
+#### 6. Push your changes to your repo
+
+> **Important: If you added your PAT token to the parameters.json file, make sure you don't commit it!**
 
 ### Application Architecture
 
@@ -77,13 +136,13 @@ This template is structured to follow the [Azure Developer CLI](https://aka.ms/a
 
 At this point, you have a complete application deployed on Azure. But there is much more that the Azure Developer CLI can do. These next steps will introduce you to additional commands that will make creating applications on Azure much easier. Using the Azure Developer CLI, you can setup your pipelines, monitor your application, test and debug locally.
 
-- [`azd pipeline config`](https://learn.microsoft.com/azure/developer/azure-developer-cli/configure-devops-pipeline?tabs=GitHub) - to configure a CI/CD pipeline (using GitHub Actions or Azure DevOps) to deploy your application whenever code is pushed to the main branch. 
+- [`azd pipeline config`](https://learn.microsoft.com/azure/developer/azure-developer-cli/configure-devops-pipeline?tabs=GitHub) - to configure a CI/CD pipeline (using GitHub Actions or Azure DevOps) to deploy your application whenever code is pushed to the main branch.
 
 - [`azd monitor`](https://learn.microsoft.com/azure/developer/azure-developer-cli/monitor-your-app) - to monitor the application and quickly navigate to the various Application Insights dashboards (e.g. overview, live metrics, logs)
 
 - [Run and Debug Locally](https://learn.microsoft.com/azure/developer/azure-developer-cli/debug?pivots=ide-vs-code) - using Visual Studio Code and the Azure Developer CLI extension
 
-- [`azd down`](https://learn.microsoft.com/azure/developer/azure-developer-cli/reference#azd-down) - to delete all the Azure resources created with this template 
+- [`azd down`](https://learn.microsoft.com/azure/developer/azure-developer-cli/reference#azd-down) - to delete all the Azure resources created with this template
 
 - [Enable optional features, like APIM](./OPTIONAL_FEATURES.md) - for enhanced backend API protection and observability
 
@@ -104,3 +163,6 @@ This template uses [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/
 ## Reporting Issues and Feedback
 
 If you have any feature requests, issues, or areas for improvement, please [file an issue](https://aka.ms/azure-dev/issues). To keep up-to-date, ask questions, or share suggestions, join our [GitHub Discussions](https://aka.ms/azure-dev/discussions). You may also contact us via AzDevTeam@microsoft.com.
+
+[github-repo-secret]: https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-a-repository
+[github-repo-variable]: https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository
